@@ -16,15 +16,18 @@ def osqp(P, q, A, l, u, max_iter=1000, rho=1.0, sigma=1e-6, eps_abs=1e-3, eps_re
         
         y += rho * (z_tilde - z)
 
-        r_prim = A @ x - z
-        r_dual = P @ x + q + A.T @ y
+        Px = P @ x
+        ATy = A.T @ y
+
+        r_prim = z_tilde - z
+        r_dual = Px + q + ATy
         r_prim_norm = np.linalg.norm(r_prim, ord=np.inf)
         r_dual_norm = np.linalg.norm(r_dual, ord=np.inf)
         
         rho *= np.sqrt(r_prim_norm / r_dual_norm)
 
-        eps_prim = eps_abs + eps_rel * max(np.linalg.norm(A @ x, ord=np.inf), np.linalg.norm(z, ord=np.inf))
-        eps_dual = eps_abs + eps_rel * max(np.linalg.norm(P @ x, ord=np.inf), np.linalg.norm(A.T @ y, ord=np.inf), np.linalg.norm(q, ord=np.inf))
+        eps_prim = eps_abs + eps_rel * max(np.linalg.norm(z_tilde, ord=np.inf), np.linalg.norm(z, ord=np.inf))
+        eps_dual = eps_abs + eps_rel * max(np.linalg.norm(Px, ord=np.inf), np.linalg.norm(ATy, ord=np.inf), np.linalg.norm(q, ord=np.inf))
         if r_prim_norm < eps_prim and r_dual_norm < eps_dual:
             break
     
