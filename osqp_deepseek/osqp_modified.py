@@ -68,13 +68,14 @@ class OSQP:
 
             self.x = preconditioned_conjugate_gradient(Kx, b_x, M_diag, tol=1e-5, max_iter=1000)
 
-            Ax_plus_u = self.A @ self.x + self.u_dual
+            Ax = self.A @ self.x
+            Ax_plus_u = Ax + self.u_dual
             self.z = np.clip(Ax_plus_u, self.l, self.u)
 
-            self.u_dual += (self.A @ self.x - self.z)
+            self.u_dual += (Ax - self.z)
 
             if iter % self.adjust_interval == 0 and iter > 0:
-                r_norm = np.linalg.norm(self.A @ self.x - self.z)
+                r_norm = np.linalg.norm(Ax - self.z)
                 s_norm = np.linalg.norm(self.rho * self.A.T @ (self.z - self.z_prev))
 
                 if r_norm > self.mu * s_norm:
@@ -90,7 +91,7 @@ class OSQP:
                     print(f"new_rho = {new_rho}")
                 self.z_prev = self.z.copy()
             
-            primal_res = np.linalg.norm(self.A @ self.x - self.z)
+            primal_res = np.linalg.norm(Ax - self.z)
             dual_res = np.linalg.norm(self.rho * self.A.T @ (self.z - self.z_prev))
             if primal_res < tol and dual_res < tol:
                 print(f"Converged at iteration {iter}")
