@@ -30,6 +30,8 @@ def osqp(P, q, A, l, u, rho=1.0, rho_min=1e-6, rho_max=1e6, mu=10, tau=1.5, adju
         _pcg_p = _pcg_z.copy()
         _pcg_rsold = np.dot(_pcg_r, _pcg_z)
 
+        #################################################
+
         for _pcg_i in range(_pcg_max_iter):
             _pcg_Ap = P @ _pcg_p
             _pcg_Ap_0 = A @ _pcg_p
@@ -37,6 +39,8 @@ def osqp(P, q, A, l, u, rho=1.0, rho_min=1e-6, rho_max=1e6, mu=10, tau=1.5, adju
             _pcg_Ap += rho * _pcg_Ap_1
             _pcg_alpha_0 = np.dot(_pcg_p, _pcg_Ap)
             _pcg_alpha = _pcg_rsold / _pcg_alpha_0
+
+            #################################################
             
             x += _pcg_alpha * _pcg_p
             _pcg_r += (-_pcg_alpha) * _pcg_Ap
@@ -47,6 +51,8 @@ def osqp(P, q, A, l, u, rho=1.0, rho_min=1e-6, rho_max=1e6, mu=10, tau=1.5, adju
                 break
             
             _pcg_beta = _pcg_rsnew / _pcg_rsold
+
+            #################################################
             
             _pcg_p_0 = _pcg_z.copy()
             _pcg_p_0 += _pcg_beta * _pcg_p
@@ -54,6 +60,8 @@ def osqp(P, q, A, l, u, rho=1.0, rho_min=1e-6, rho_max=1e6, mu=10, tau=1.5, adju
             
             _pcg_rsold = _pcg_rsnew
         
+        #################################################
+
         Ax = A @ x
         
         Ax_plus_u = Ax.copy()
@@ -66,7 +74,12 @@ def osqp(P, q, A, l, u, rho=1.0, rho_min=1e-6, rho_max=1e6, mu=10, tau=1.5, adju
         u_dual += (1.0) * Ax_minus_z
 
         r_norm = np.linalg.norm(Ax_minus_z)
+
+        #################################################
+
         if iter % adjust_interval == 0 and iter > 0:
+            z_prev = z.copy()
+            
             z_1 = z.copy()
             z_1 += (-1.0) * z_prev
             z_2 = A.T @ z_1
@@ -81,7 +94,7 @@ def osqp(P, q, A, l, u, rho=1.0, rho_min=1e-6, rho_max=1e6, mu=10, tau=1.5, adju
                 rho /= tau
                 rho = np.clip(rho, rho_min, rho_max)
             
-            z_prev = z.copy()
+        #################################################
         
         z_1 = z.copy()
         z_1 += (-1.0) * z_prev
@@ -92,5 +105,7 @@ def osqp(P, q, A, l, u, rho=1.0, rho_min=1e-6, rho_max=1e6, mu=10, tau=1.5, adju
 
         if r_norm < tol and dual_res < tol:
             break
+        
+        #################################################
 
     return x
