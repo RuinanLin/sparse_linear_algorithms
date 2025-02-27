@@ -29,7 +29,7 @@ def preconditioned_conjugate_gradient(Kx_func, b, M_diag, x0=None, tol=1e-5, max
         beta = rsnew / rsold
         p = z + beta * p
         rsold = rsnew
-    return x
+    return x, pcg_iters
 
 class OSQP:
     def __init__(self, P, q, A, l, u):
@@ -57,6 +57,7 @@ class OSQP:
 
         A_sq_sum = (self.A ** 2).sum(axis=0)
 
+        total_inner_iters = 0
         for iter in range(max_iter):
             diag_K = diag_P + self.rho * A_sq_sum
             M_diag = 1.0 / diag_K
@@ -66,7 +67,8 @@ class OSQP:
             
             b_x = -self.q + self.rho * (self.A.T @ (self.z - self.u_dual))
 
-            self.x = preconditioned_conjugate_gradient(Kx, b_x, M_diag, tol=1e-5, max_iter=1000)
+            self.x, pcg_iters = preconditioned_conjugate_gradient(Kx, b_x, M_diag, tol=1e-5, max_iter=1000)
+            total_inner_iters += pcg_iters
 
             Ax = self.A @ self.x
             Ax_plus_u = Ax + self.u_dual
@@ -95,6 +97,7 @@ class OSQP:
             dual_res = np.linalg.norm(self.rho * self.A.T @ (self.z - self.z_prev))
             if primal_res < tol and dual_res < tol:
                 print(f"Converged at iteration {iter}")
+                print(f"total_inner_iters = {total_inner_iters}")
                 break
             
         return self.x
