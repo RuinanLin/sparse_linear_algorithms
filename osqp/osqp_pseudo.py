@@ -1,4 +1,4 @@
-def osqp(P, q, A, l, u, max_iter=1000, rho=1.0, sigma=1e-6, eps_abs=1e-3, eps_rel=1e-3):
+def osqp(P, q, A, l, u, max_iter=1000, rho=1.0, sigma=1e-6, eps_abs=1e-3, eps_rel=1e-3, mu=10, tau=2):
     n = P.shape[0]
     m = A.shape[0]
     
@@ -23,8 +23,11 @@ def osqp(P, q, A, l, u, max_iter=1000, rho=1.0, sigma=1e-6, eps_abs=1e-3, eps_re
         r_dual = Px + q + ATy
         r_prim_norm = np.linalg.norm(r_prim, ord=np.inf)
         r_dual_norm = np.linalg.norm(r_dual, ord=np.inf)
-        
-        rho *= np.sqrt(r_prim_norm / r_dual_norm)
+
+        if r_prim_norm > mu * r_dual_norm:
+            rho *= tau
+        elif r_dual_norm > mu * r_prim_norm:
+            rho /= tau
 
         eps_prim = eps_abs + eps_rel * max(np.linalg.norm(z_tilde, ord=np.inf), np.linalg.norm(z, ord=np.inf))
         eps_dual = eps_abs + eps_rel * max(np.linalg.norm(Px, ord=np.inf), np.linalg.norm(ATy, ord=np.inf), np.linalg.norm(q, ord=np.inf))

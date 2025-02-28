@@ -59,8 +59,16 @@ class OSQP:
         print(f"r_prim_norm = {r_prim_norm}")
         r_dual_norm = np.linalg.norm(r_dual, ord=np.inf)
         print(f"r_dual_norm = {r_dual_norm}")
-        self.rho *= np.sqrt(r_prim_norm / r_dual_norm)
-        print(f"rho = {self.rho}")
+        
+        # self.rho *= np.sqrt(r_prim_norm / r_dual_norm)
+        # print(f"rho = {self.rho}")
+        if r_prim_norm > 10 * r_dual_norm:
+            self.rho *= 2
+            print(f"rho *= 2, rho = {self.rho}")
+        elif r_dual_norm > 10 * r_prim_norm:
+            self.rho /= 2
+            print(f"rho /= 2, rho = {self.rho}")
+
         self._update_kkt()
         eps_prim = self.eps_abs + self.eps_rel * max(np.linalg.norm(self.A @ self.x, ord=np.inf), np.linalg.norm(self.z, ord=np.inf))
         eps_dual = self.eps_abs + self.eps_rel * max(np.linalg.norm(self.P @ self.x, ord=np.inf), np.linalg.norm(self.A.T @ self.y, ord=np.inf), np.linalg.norm(self.q, ord=np.inf))
