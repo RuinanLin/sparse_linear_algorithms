@@ -93,6 +93,7 @@ class OSQP:
             if iter % self.adjust_interval == 0 and iter > 0:
                 r_norm = np.linalg.norm(self.A @ self.x - self.z)
                 s_norm = np.linalg.norm(self.rho * self.A.T @ (self.z - self.z_prev))
+                self.z_prev = self.z.copy()
                 
                 if r_norm > self.mu * s_norm:
                     new_rho = self.rho * self.tau
@@ -105,7 +106,6 @@ class OSQP:
                 if new_rho != self.rho:
                     self.rho = new_rho
                     print(f"new_rho = {new_rho}")
-                self.z_prev = self.z.copy()
             
             history['x'].append(self.x.copy())
             history['rho'].append(self.rho)
